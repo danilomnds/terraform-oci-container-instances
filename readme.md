@@ -9,7 +9,7 @@ Module developed to standardize the creation of Oracle Cloud Infrastructure (OCI
 
 | Module Version | Terraform Version | OCI Provider Version |
 |----------------|------------------|---------------------|
-| v1.0.0         | v1.14.4          | 7.33.0              |
+| v1.0.0         | v1.14.4          | 8.0.0              |
 
 ---
 
@@ -25,6 +25,7 @@ To avoid using the latest module version unintentionally, specify the `?ref=***`
 module "container_instance" {
   source                  = "git::https://github.com/danilomnds/terraform-oci-container-instances?ref=v1.0.0"  
   availability_domain     = "YBIs:SA-VINHEDO-1-AD-1"
+  fault_domain            = "FAULT-DOMAIN-1"
   compartment_id          = "<compartment_ocid>"   
   display_name            = "frontend"
   container_restart_policy = "ALWAYS"
@@ -79,7 +80,7 @@ terraform {
   required_providers {
     oci = {
       source  = "oracle/oci"
-      version = "7.33.0"
+      version = "8.0.0"
     }
   }
 }

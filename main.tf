@@ -1,4 +1,26 @@
+resource "oci_identity_dynamic_group" "dg_container_instances" {
+  provider       = oci.home  
+  count          = var.policies ? 1 : 0
+  compartment_id = var.tenancy_ocid
+  description    = "Dynamic group used by Container Instance"  
+  matching_rule  = "ALL {resource.type='computecontainerinstance', resource.compartment.id = '${var.compartment_id}'}"
+  name           = "dg_container_instances"
+}
+
+resource "oci_identity_policy" "policy_dg_container_instances" {
+  provider       = oci.home
+  depends_on     = [oci_identity_dynamic_group.dg_container_instances]
+  count          = var.policies ? 1 : 0
+  compartment_id = var.compartment_id
+  name           = "policy_dg_container_instances"
+  description    = "allow dg_container_instances pull images from container repository"
+  statements = [
+    "Allow dynamic-group ${oci_identity_dynamic_group.dg_container_instances[0].name} to read repos in compartment ${var.compartment}" 
+  ]  
+}
+
 resource "oci_container_instances_container_instance" "instance" {
+  depends_on = [ oci_identity_policy.policy_dg_container_instances ]
   availability_domain      = var.availability_domain
   compartment_id           = var.compartment_id
   container_restart_policy = var.container_restart_policy
@@ -214,40 +236,9 @@ resource "oci_identity_policy" "container_instance" {
     if var.groups != [] && var.compartment != null && var.policies == true
   }
   compartment_id = var.compartment_id
-  name           = "policy_artifacts_container_repository"
-  description    = "allow one or more groups to manage rows and indexes and read tables in nosql."
+  name           = "policy_container_instances"
+  description    = "allow one or more groups to use compute-container-family"
   statements = [
     "Allow group ${each.value} to use compute-container-family in compartment ${var.compartment}"
-  ]
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-resource "oci_identity_dynamic_group" "dg_container_instances" {
-  provider       = oci.home
-  depends_on = [ oci_container_instances_container_instance.instance ]
-  count          = var.policies ? 1 : 0
-  compartment_id = var.tenancy_ocid
-  description    = "Dynamic group used by Container Instance"  
-  matching_rule  = "ALL {resource.type='computecontainerinstance', resource.compartment.id = '${var.compartment_id}'}"
-  name           = "dg-container-instances"  
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-resource "oci_identity_policy" "policy_dg_container_instances" {
-  provider       = oci.home
-  depends_on     = [oci_identity_dynamic_group.dg_container_instances]
-  count          = var.policies ? 1 : 0
-  compartment_id = var.compartment_id
-  name           = "policy_dg_container_instances"
-  description    = "allow scaling operations by the oke autoscaler"
-  statements = [
-    "Allow dynamic-group ${oci_identity_dynamic_group.dg_container_instances[0].name} to read repos in compartment ${var.compartment}" 
-  ]
-  lifecycle {
-    prevent_destroy = true
-  }
+  ]  
 }
