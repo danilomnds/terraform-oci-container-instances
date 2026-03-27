@@ -167,3 +167,8 @@ variable "policies" {
   type = bool
   default = false
 }
+
+variable "network_compartment" {
+  type    = string
+  default = "IT:Network"
+}

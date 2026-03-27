@@ -8,8 +8,8 @@ Module developed to standardize the creation of Oracle Cloud Infrastructure (OCI
 ## Compatibility Matrix
 
 | Module Version | Terraform Version | OCI Provider Version |
-|----------------|------------------|---------------------|
-| v1.0.0         | v1.14.4          | 8.0.0              |
+|----------------|-------------------|----------------------|
+| v1.0.0         | v1.14.8           | 8.7.0                |
 
 ---
 
@@ -121,7 +121,7 @@ provider "oci" {
 | dns_config                         | DNS configuration object                                                                   | `object`       | `null`    | No       |
 | fault_domain                       | The fault domain for the container instance                                                | `string`       | `null`    | No       |
 | graceful_shutdown_timeout_in_seconds| Timeout for graceful shutdown                                                             | `number`       | `null`    | No       |
-| image_pull_secrets                 | Registry authentication object (see below for structure)                                   | `object`       | n/a       | Yes      |
+| image_pull_secrets                 | Registry authentication object (see below for structure)                                   | `object`       | `null`    | No       |
 | shape                              | The shape of the container instance                                                        | `string`       | n/a       | Yes      |
 | shape_config                       | Shape configuration object (see below for structure)                                       | `object`       | n/a       | Yes      |
 | vnics                              | VNIC configuration object (see below for structure)                                        | `object`       | n/a       | Yes      |
@@ -129,8 +129,10 @@ provider "oci" {
 | state                              | Desired state of the container instance                                                    | `string`       | `null`    | No       |
 | groups                             | List of groups to grant access via IAM policy                                              | `list(string)` | `[]`      | No       |
 | compartment                        | Compartment name for IAM policy creation                                                   | `string`       | `null`    | No       |
-| tenancy_ocid                       | Tenancy OCID where the container instance will be created                                  | `string`       | n/a       | No       |
-| policies                           | Should access policies and dynamic group be created? I you have more than one specify it once | `bool`         | `false`   | No       |
+| tenancy_ocid                       | Tenancy OCID where the container instance will be created                                  | `string`       | n/a       | `Yes`     |
+| policies                           | Should access policies and dynamic group be created? If you have more than one container instance, specify it only once | `bool`         | `false`   | No       |
+| rbac                               | Enable RBAC policy creation                                                                | `bool`         | `false`   | No       |
+| network_compartment                | Compartment name used in IAM policy statements for virtual-network-family and vnics access | `string`       | `"IT:Network"` | No   |
 
 ---
 

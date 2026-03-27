@@ -2,18 +2,18 @@ resource "oci_identity_dynamic_group" "dg_container_instances" {
   provider       = oci.home  
   count          = var.policies ? 1 : 0
   compartment_id = var.tenancy_ocid
-  description    = "Dynamic group used by Container Instance"  
+  description    = "Dynamic group used by Container Instance in compartment ${var.compartment}"  
   matching_rule  = "ALL {resource.type='computecontainerinstance', resource.compartment.id = '${var.compartment_id}'}"
-  name           = "dg_container_instances"
+  name           = "dg_container_instances_${lower(replace(var.compartment, ":", "_"))}"
 }
 
 resource "oci_identity_policy" "policy_dg_container_instances" {
   provider       = oci.home
   depends_on     = [oci_identity_dynamic_group.dg_container_instances]
   count          = var.policies ? 1 : 0
-  compartment_id = var.compartment_id
-  name           = "policy_dg_container_instances"
-  description    = "allow dg_container_instances pull images from container repository"
+  compartment_id = var.tenancy_ocid
+  name           = "policy_dg_container_instances_${lower(replace(var.compartment, ":", "_"))}"
+  description    = "allow dg_container_instances in compartment ${var.compartment} to pull images from container repository"
   statements = [
     "Allow dynamic-group ${oci_identity_dynamic_group.dg_container_instances[0].name} to read repos in compartment ${var.compartment}" 
   ]  
@@ -172,13 +172,6 @@ resource "oci_container_instances_container_instance" "instance" {
   fault_domain                         = var.fault_domain
   graceful_shutdown_timeout_in_seconds = var.graceful_shutdown_timeout_in_seconds
   
-  /*image_pull_secrets {
-    registry_endpoint = var.image_pull_secrets.registry_endpoint
-    secret_type       = var.image_pull_secrets.secret_type
-    username          = lookup(var.image_pull_secrets, "username", null)
-    password          = lookup(var.image_pull_secrets, "password", null)
-    secret_id         = lookup(var.image_pull_secrets, "secret_id", null)
-  }*/
   dynamic "image_pull_secrets" {
     for_each = var.image_pull_secrets != null ? [var.image_pull_secrets] : []
     content {
@@ -228,6 +221,7 @@ resource "oci_container_instances_container_instance" "instance" {
   }
 }
 
+# The policy must be created at root level because the access on IT:Network is required to stop/start the instance
 resource "oci_identity_policy" "container_instance" {
   provider   = oci.home
   depends_on = [oci_container_instances_container_instance.instance]
@@ -235,10 +229,13 @@ resource "oci_identity_policy" "container_instance" {
     for group in var.groups : group => group
     if var.groups != [] && var.compartment != null && var.policies == true
   }
-  compartment_id = var.compartment_id
-  name           = "policy_container_instances"
-  description    = "allow one or more groups to use compute-container-family"
+  compartment_id = var.tenancy_ocid
+  name           = "policy_ci_${lower(replace(each.value, "OracleIdentityCloudService/", ""))}"
+  description    = "policy to allow one or more groups to use compute-container-family and cloud-shell"
   statements = [
-    "Allow group ${each.value} to use compute-container-family in compartment ${var.compartment}"
+    "Allow group ${each.value} to use compute-container-family in compartment ${var.compartment}",
+    "Allow group ${each.value} to use cloud-shell in compartment ${var.compartment}",
+    "Allow group ${each.value} to read virtual-network-family in compartment ${var.network_compartment}",
+    "Allow group ${each.value} to use vnics in compartment ${var.network_compartment}"
   ]  
 }

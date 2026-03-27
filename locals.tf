@@ -1,6 +1,5 @@
 locals {
-  default_tags = {
-    "IT.resource" : "database"
+  default_tags = {    
     "IT.deployedby" : "backstage"
     "IT.provider" : "oci"
     "IT.create_date" : formatdate("DD/MM/YY hh:mm", timeadd(timestamp(), "-3h"))
