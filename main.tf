@@ -14,9 +14,15 @@ resource "oci_identity_policy" "policy_dg_container_instances" {
   compartment_id = var.tenancy_ocid
   name           = "policy_dg_container_instances_${lower(replace(var.compartment, ":", "_"))}"
   description    = "allow dg_container_instances in compartment ${var.compartment} to pull images from container repository"
-  statements = [
-    "Allow dynamic-group ${oci_identity_dynamic_group.dg_container_instances[0].name} to read repos in compartment ${var.compartment}" 
-  ]  
+  statements = concat([
+    "Allow dynamic-group ${oci_identity_dynamic_group.dg_container_instances[0].name} to read repos in compartment ${var.compartment}"
+    ],
+    var.nosql_integration ? [
+      "Allow dynamic-group ${oci_identity_dynamic_group.dg_container_instances[0].name} to use nosql-tables in compartment ${var.compartment}",
+      "Allow dynamic-group ${oci_identity_dynamic_group.dg_container_instances[0].name} to manage nosql-rows in compartment ${var.compartment}",
+      "Allow dynamic-group ${oci_identity_dynamic_group.dg_container_instances[0].name} to manage nosql-indexes in compartment ${var.compartment}"
+    ] : []
+  )  
 }
 
 resource "oci_container_instances_container_instance" "instance" {
@@ -232,10 +238,14 @@ resource "oci_identity_policy" "container_instance" {
   compartment_id = var.tenancy_ocid
   name           = "policy_ci_${lower(replace(each.value, "OracleIdentityCloudService/", ""))}"
   description    = "policy to allow one or more groups to use compute-container-family and cloud-shell"
-  statements = [
+  statements = concat([
     "Allow group ${each.value} to use compute-container-family in compartment ${var.compartment}",
     "Allow group ${each.value} to use cloud-shell in compartment ${var.compartment}",
     "Allow group ${each.value} to read virtual-network-family in compartment ${var.network_compartment}",
     "Allow group ${each.value} to use vnics in compartment ${var.network_compartment}"
-  ]  
+    ], 
+    var.allow_read_load_balancers ? [
+      "Allow group ${each.value} to read load-balancers in compartment ${var.compartment}"
+    ] : []
+  )
 }

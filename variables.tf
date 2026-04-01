@@ -169,6 +169,29 @@ variable "policies" {
 }
 
 variable "network_compartment" {
+
   type    = string
+
   default = "IT:Network"
+
+}
+
+
+
+variable "nosql_integration" {
+
+  type    = bool
+
+  default = false
+
+}
+
+
+
+variable "allow_read_load_balancers" {
+
+  type    = bool
+
+  default = false
+
 }

@@ -133,6 +133,8 @@ provider "oci" {
 | policies                           | Should access policies and dynamic group be created? If you have more than one container instance, specify it only once | `bool`         | `false`   | No       |
 | rbac                               | Enable RBAC policy creation                                                                | `bool`         | `false`   | No       |
 | network_compartment                | Compartment name used in IAM policy statements for virtual-network-family and vnics access | `string`       | `"IT:Network"` | No   |
+| nosql_integration                  | Should access policies for nosql be created?                                               | `bool`         | `false`   | No       |
+| allow_read_load_balancers          | Should access policies for load balancers be created?                                      | `bool`         | `false`   | No       |
 
 ---
 
